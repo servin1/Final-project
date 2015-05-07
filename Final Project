@@ -1,0 +1,420 @@
+// Solving Problems with Programming
+// Professor Ken Bauer
+//
+// Sudoku
+
+// Osvaldo Mendoza Servín
+// A01630327
+// and
+// Luis Fernando Alvarado Rios
+// A01630322
+
+// Standard libraries
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+const int BOARDSIZE = 9;
+const int EMPTY = 0;
+
+/*
+ * creates a board filed with zeroes (empty spaces)
+ * we will do this, then populate it from a file with
+ * another function below
+ */
+void createZeroBoard(vector< vector<int> >& board){
+  for(int r = 0; r < BOARDSIZE ; r++){
+    // grab a full line from the file
+    for(int c = 0; c < BOARDSIZE ; c++){
+      board[r][c] = EMPTY;
+    }
+  }
+}
+
+/*
+ * Populates the board from the contents of the file
+ * The file must contain 9 lines with 9 values each line
+ * The values must be either zero (0) for empty or values between 1 and 9
+ */
+void populateBoardFromFile(vector< vector<int> >& board, string filename){
+  ifstream infile(filename.c_str()); // the c_str() is to convert from string to char*
+  int cell;
+  string line;
+  if(infile.good()){
+    for(int r = 0; r < BOARDSIZE ; r++){
+      // grab a full line from the file
+      for(int c = 0; c < BOARDSIZE ; c++){
+  infile >> cell;
+  board[r][c] = cell;
+      }
+    }
+  } else {
+    cout << "Something is wrong with the ip3ut file" << endl;
+  }
+}
+
+/*
+ * The function prints the board.
+ * Each cell is a zero (for empty) or the value 1 to 9
+ * Each cell is separated by a space
+ * NO SPACE at end of row.
+ */
+void printBoard(vector< vector<int> >& board){
+  string blue = "\x1b[34m";
+  string yellow = "\x1b[30m";
+  string red = "\x1b[31m";
+  string green = "\x1b[32m";
+  string white = "\x1b[47m";
+  string reset = "\x1b[0m";
+  // nothing for now, you will implement this for Partial 2 project delivery
+  cout<<"°||-1-|--2-|--3-||--4-|--5-|--6-||--7-|--8-|--9--||";
+  cout<<endl;
+  for(int r = 0; r < BOARDSIZE ; r++){
+    //cout<<r;
+     if(r==0){
+       cout<<"="<<blue<<"=================================================="; //This line and the next one is to print the first blue lines
+       cout<<reset;
+       cout<<endl;
+       cout<<r+1;
+     }
+     else {
+       cout<<r+1;
+     }
+    for(int c = 0; c < BOARDSIZE ; c++){
+      if(c==0 || c==3 || c==6 )
+      {
+        //cout<<c+1;
+        //cout<<reset;
+        cout<<""<<blue<<"||";
+        cout<<reset;
+      }
+      else {
+        cout<<"|";
+      }
+
+      if(c > 0){
+  cout << " ";
+      }
+
+      if(board[r][c]==0){  //Each time the program finds a zero, it prints a space
+        cout<<"   ";
+      }
+      else {
+      cout <<" "<<abs(board[r][c])<<" ";  //if it is not a zero, it prints the original number and a positive number
+    }
+      if(c==8){
+        cout<<""<<blue<<" ||";
+        cout<<reset;
+      }
+
+    }
+
+    cout << endl;
+
+    if( r==2 || r==5 || r==8){
+      cout<<"="<<blue<<"==================================================";
+      cout<<reset;
+    }
+    else {
+      cout<<"=--------------------------------------------------";
+    }
+    cout<<endl;
+  }
+}
+  void Instructions(){
+    cout<<"You will find a box of 9X9, what you have to do is write the numbers 1 to 9 ";
+    cout<<"but you cannot repeat a number in a colum in a row or in a region" << endl;
+  }
+
+  void History(){
+    cout<<"The history of Sudoku dates back to an 18th Century Swiss mathematician’s";
+    cout<<"game called “latin Squares” (according to this article from the Economist) and some of";
+    cout<<"the first number puzzles to appear in newspapers were pp6lished in France in 1895.";
+    cout<<"But the modern game of Sudoku as we recognize it today was invented by Howard Garns,";
+    cout<<"a freelance puzzle inventor from Connersville, Indiana, USA in 1979 when it was pp6lished";
+    cout<<"in Dell Pencil Puzzles and Word Games magazine. The puzzle was known as “Number Place,”";
+    cout<<"since it involved placing individual numbers into empty spots on a 9 x 9 grid."<< endl;
+
+  }
+
+  void write (vector<vector<int> >& board, int r, int c, int n){
+    if (board[r][c]>0){  //This detects the board, just if it is a white space (0) the user can write
+      cout<< "This is an original number"<<endl;
+    }
+    else {
+      board[r][c]=-n;  //What this do is to convert the value that the user gave to negative, in this way you an identify it
+    }
+  }
+
+
+  void erase(vector<vector<int> >& board, int r, int c) {
+      if(board[r][c]>0){
+        cout<<"You cannot erase that number because is part of the original version"<< endl;
+      }
+      else {
+        board[r][c]=0;
+      }
+    }
+
+
+bool check3X3(vector< vector<int> >& board, int r, int c, int n){
+  int line=r/3;
+  int column=c/3;
+  for( int x=line*3; x<=line*3+2; x++){
+    for(int y=column*3; y<=column*3+2; y++){
+      if(board[x][y]==n){
+        cout << " This number is already in the region"<<endl;
+        return false;
+      }
+    }
+  }
+  return true;
+}
+ bool checkline(vector< vector<int> > & board, int r, int n){
+     for(int c=0; c<=8; c++){
+       if(board[r][c] == n){
+         cout << "This number is already in the line, try with another one "<<endl;
+         return false;
+       }
+     }
+     return true;
+    }
+
+    bool checkcolumn(vector< vector<int> > & board, int c, int n){
+        for(int r=0; r<=8; r++){
+          if(board[r][c] == n){
+            cout << "This number is already in the column, try with another one "<<endl;
+            return false;
+          }
+        }
+        return true;
+       }
+
+       bool digit(string s){
+         int string = s.length();
+         for(int i=0; i<string; i++){
+           if(s[i]<'0' || s[i]>'9'){
+             return false;
+           }
+         }
+         return true;
+       }
+
+       bool win (vector<vector<int> >& board, int r, int c){
+         for(int r=0; r< BOARDSIZE; r++){
+           for(int c = 0; c< BOARDSIZE; c++){
+             if(board[r][c]==0){
+               return false;
+             }
+           }
+         }
+         return true;
+       }
+
+/*
+ * Your main program goes here.
+ * first get the parameters, check if parameter size is 2
+ * first parameter is always the program name in C/C++
+ * second parameter is the filename to read in this program
+ * any other number of parameters is illegal
+ */
+int main(int argc, char* argv[]) {
+  string blue = "\x1b[34m";
+  string yellow = "\x1b[30m";
+  string red = "\x1b[31m";
+  string green = "\x1b[32m";
+  string white = "\x1b[47m";
+  string reset = "\x1b[0m";
+  string filename;
+  int c, n, r;
+
+  vector< vector<int> > theBoard(BOARDSIZE,vector<int>(BOARDSIZE));
+
+  switch(argc)
+    {
+    case 1:
+      cout << "Please provide the parameters to the program, you must enter a filename to initiate the Sudoku." << endl;
+      exit(1);
+    case 2:
+      filename = argv[1];
+      break;
+    default:
+      cout << "Please provide the parameters to the program, you must enter a filename to initiate the Sudoku." << endl;
+      exit(1);
+    }
+
+  createZeroBoard(theBoard);
+  populateBoardFromFile(theBoard,filename);
+
+  cout << "Welcome to the Game of Sudoku" << endl;
+  // Herecou you provide a menu to the user to do what they want
+  // The options are:
+  //    print (call the printBoard function)
+  //    write (ask user what number they want to add and where), must accept op4y legal values
+  //    erase (ask user which position they want to erase), must not erase original values
+  //    quit (quit the program)
+         string userChoice;
+         cout<<endl;
+         cout<<endl;
+         cout<<"Write the corresponging option. "<< endl;
+         cout<<endl;
+
+         //cout<<"="<<blue<<"=================================================="; //This line and the next one is to print the first blue lines
+
+         cout<<blue<<"1) History  "<< endl;
+         cout<<reset;
+         cout<<"2) Instructions "<<endl;
+         cout<<red<<"3) Print "<<endl;
+         cout<<reset;
+         cout<<green<<"4) Write "<<endl;
+         cout<<reset;
+         cout<<blue<<"5) Erase "<<endl;
+         cout<<reset;
+         cout<<"6) Quit "<<endl;
+         cout<<green<<"7) Again"<<endl;
+         cout<<reset;
+         cout<<endl;
+         cout<<endl;
+         cout<<"Insert the option: "; cin >> userChoice;
+         cout<<endl;
+
+         do {
+           if(userChoice == "History" || userChoice == "history"){
+             History();
+           }
+
+            else{
+              if(userChoice== "Instructions" || userChoice == "instructions"){
+                Instructions();
+              }
+              else {
+                if(userChoice=="Print" || userChoice=="print"){
+                printBoard(theBoard);
+                break;
+              }
+              else {
+
+
+
+
+                if(userChoice=="Write" || userChoice=="write"){ //paréntesis caso 4
+                //   int c, n, r;
+                   string col, num, lin;
+
+
+                  cout << endl;
+                  cout << " Insert a line: "<<endl;
+                  cin >> lin;
+                  while(digit(lin)==0 || atoi(lin.c_str() ) >=10 || atoi(lin.c_str() )<1){
+                    cout << " Invalid digit, try again: "<<endl;
+                    cin >> lin;
+                  }
+                  cout << " Insert a column: "<<endl;
+                  cin >>col;
+                  while(digit(col)==0 || atoi(col.c_str() ) >=10 || atoi(col.c_str() )<1){
+                    cout << "Invalid digit, try again: "<<endl;
+                    cin >> col;
+                  }
+                   cout << " Insert a number: "<<endl;
+                   cin >>num;
+                  while(digit(num)==0 || atoi(num.c_str() ) >=10){
+                    cout<<" Invalid digit, try again: "<<endl;
+                    cin>>num;
+                  }
+
+
+                 r=atoi(lin.c_str())-1;
+                  c=atoi(col.c_str())-1;
+                  n=atoi(num.c_str());
+                  bool square =check3X3(theBoard, r, c, n);
+                  bool line=checkline(theBoard, r,n);
+                  bool column=checkcolumn(theBoard, c, n);
+                  if(square ==false || line==false || column==false){
+                    cout<<" Try with another one "<<endl;
+                  }
+                  else{
+                    write(theBoard, r, c, n);
+                    cout<<"you got a number!!!"<<endl;
+                  }
+                  if(win(theBoard, r, c)){
+                    cout << " You have won the game!!" << endl;
+
+                    printBoard(theBoard);
+                    return 0;
+                  }
+                  cout << endl;
+                  cout <<" You got a number!!! "<<endl;
+                  cout << endl;
+                  printBoard(theBoard);
+                  continue;
+                }
+
+
+
+                if(userChoice=="Erase" || userChoice=="erase"){
+
+                   string col, num, lin;
+
+
+                  cout << endl;
+                  cout << " Insert a line: "<<endl;
+                  cout << " ";
+                  cin >> lin;
+                  while(digit(lin)==0 || atoi(lin.c_str() ) >=10 || atoi(lin.c_str() )<0){
+                    cout << " Invalid digit, try again: "<<endl;
+                    cout << " ";
+                    cin >> lin;
+                  }
+                  cout << " Insert a column: "<<endl;
+                  cout << " ";
+                  cin >> col;
+                  while(digit(col)==0 || atoi(col.c_str() ) >=10 || atoi(col.c_str() )<0){
+                    cout << "Invalid digit, try again: "<<endl;
+                    cout << " ";
+                    cin >> col;
+                  }
+                   cout << " Insert a number: "<<endl;
+                   cout << " ";
+                   cin >> num;
+
+
+
+                 r=atoi(lin.c_str())-1;
+                  c=atoi(col.c_str())-1;
+                  n=atoi(num.c_str());
+
+                  printBoard(theBoard);
+                  continue;
+                  }
+                else {
+
+                  if(userChoice=="Again" || userChoice=="again"){
+                    createZeroBoard(theBoard);
+                    populateBoardFromFile(theBoard,filename);
+                  //  printBoard(theBoard);
+                    //break;
+                    continue;
+                    printBoard(theBoard);
+                  }
+
+                }
+
+
+
+   }
+               }
+              }
+
+
+         } while(userChoice != "Quit" || userChoice != "quit");
+         if(userChoice == "Quit" || userChoice == "quit") {
+          // exit(0);
+          void Salir (void);
+         }
+
+  return 0;
+}
